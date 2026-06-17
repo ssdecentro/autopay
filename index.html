@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Decentro · UPI Autopay (Mobile-First EMI Mandate)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --surface:#f1f5f9; --surface-2:#f8fafc;
+    --border:#e2e8f0; --border-strong:#cbd5e1;
+    --fg:#1c2024; --muted:#94a3b8; --subtle:#475569; --dark-txt:#334155;
+    --black:#000000;
+    --navy-1:#020b1e; --navy-2:#06122e;
+    --success-bg:#dcfce7; --success-fg:#166534; --success-bd:#bbf7d0;
+    --pending-bg:#fef9c3; --pending-fg:#854d0e; --pending-bd:#fef08a;
+    --proc-bg:#dbeafe; --proc-fg:#1e40af; --proc-bd:#bfdbfe;
+    --error-bg:#fee2e2; --error-fg:#991b1b; --error-bd:#fecaca;
+    --accent:#10b981;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  .app,.brand,.stage,.stage-inner,.steps,.step,.step-top,.step-meta,.body-inner,.body-inner>div,
+  .feed,.sec,.sec-b,.kv,.summary-strip,.ss,.rev-grid,.chain-head,.chain-foot,.review-actions,
+  .out-row,.numbers,.auth-card,.auth-info{min-width:0}
+  .term{max-width:100%}
+  .kv .v,.out-v{word-break:break-word;overflow-wrap:anywhere}
+  .feed-chip{max-width:100%;flex-wrap:wrap}
+  html,body{height:100%;overflow-x:hidden;max-width:100%}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    color:var(--fg); background:#eef2f6;
+    -webkit-font-smoothing:antialiased; line-height:1.45;
+  }
+  .app{min-height:100vh; display:grid; grid-template-columns:minmax(360px,440px) 1fr;}
+  @media (max-width:920px){ .app{grid-template-columns:1fr} }
+
+  /* ---------- BRAND PANEL ---------- */
+  .brand{
+    background:linear-gradient(160deg,var(--navy-1),var(--navy-2));
+    color:#fff; padding:40px 38px; display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh;
+  }
+  @media (max-width:920px){ .brand{position:static;height:auto;padding:28px 24px} }
+  .brand-wordmark{font-family:'Montserrat',sans-serif;font-weight:700;font-size:22px;letter-spacing:2px;color:#fff;text-align:left;align-self:flex-start}
+  .brand-head{margin-top:auto}
+  .brand-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#5eead4}
+  .brand-title{font-size:30px;line-height:1.18;font-weight:800;margin-top:14px;letter-spacing:-.5px}
+  .brand-sub{font-size:14px;color:#9fb0c9;margin-top:14px;max-width:340px}
+  .brand-stats{display:flex;gap:26px;margin-top:30px}
+  .brand-stat .n{font-size:22px;font-weight:800}
+  .brand-stat .l{font-size:11px;color:#9fb0c9;margin-top:2px}
+  .brand-foot{margin-top:30px;font-size:11px;color:#64748b;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .brand-chip{border:1px solid #1e2c47;border-radius:100px;padding:4px 10px;color:#9fb0c9}
+  @media (max-width:920px){ .brand-head{margin-top:20px} .brand-title{font-size:24px} .brand-stats{display:none} }
+
+  /* ---------- STAGE ---------- */
+  .stage{padding:38px 44px;display:flex;flex-direction:column;min-height:100vh}
+  @media (max-width:920px){ .stage{padding:24px 18px;min-height:auto} }
+  .stage-inner{width:100%;max-width:760px;margin:0 auto;flex:1;display:flex;flex-direction:column}
+  .step-check{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 0 20px}
+  .sc-label{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin-right:3px}
+  .sc-item{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--muted);background:#fff;border:1px solid var(--border);border-radius:100px;padding:4px 10px 4px 6px;transition:.25s}
+  .sc-item .sc-tick{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border);flex:none;display:flex;align-items:center;justify-content:center;background:#fff;transition:.25s}
+  .sc-item .sc-tick svg{width:9px;height:9px;color:#fff;opacity:0;transition:opacity .25s}
+  .sc-item.done{color:var(--fg);border-color:var(--success-bd);background:#f0fdf4}
+  .sc-item.done .sc-tick{background:var(--accent);border-color:var(--accent)}
+  .sc-item.done .sc-tick svg{opacity:1}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+  .crumbs{font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .crumbs b{color:var(--fg)}
+  .mode-wrap{display:flex;align-items:center;gap:8px}
+  .mode-cap{font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted)}
+  .mode-toggle{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:3px}
+  .mode-opt{font-family:inherit;border:0;background:transparent;cursor:pointer;font-size:11px;font-weight:700;color:var(--subtle);padding:6px 13px;border-radius:100px;transition:.15s;display:inline-flex;align-items:center;gap:5px;line-height:1}
+  .mode-opt:hover{color:var(--fg)}
+  .mode-opt.active{background:#000;color:#fff}
+
+  .screen{display:none;animation:fade .35s ease}
+  .screen.active{display:flex;flex-direction:column;flex:1}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h1.h{font-size:24px;font-weight:800;letter-spacing:-.4px}
+  p.lead{font-size:14px;color:var(--subtle);margin-top:8px;max-width:560px}
+
+  .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-pad{padding:22px}
+
+  /* loan context strip */
+  .loan-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:18px;background:#fff}
+  .loan-cell{padding:13px 15px;border-right:1px solid var(--border)}
+  .loan-cell:last-child{border-right:0}
+  .loan-cell .l{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+  .loan-cell .n{font-size:15px;font-weight:800;margin-top:3px}
+
+  /* input */
+  .label{font-size:12px;font-weight:600;color:var(--subtle);display:block;margin-bottom:7px}
+  .phone-wrap{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;transition:.15s}
+  .phone-wrap:focus-within{border-color:#000;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+  .cc{display:flex;align-items:center;gap:7px;padding:0 14px;background:var(--surface);font-size:14px;font-weight:600;color:var(--fg);border-right:1px solid var(--border)}
+  .phone-wrap input{flex:1;border:0;outline:0;font-family:inherit;font-size:16px;font-weight:600;letter-spacing:.6px;padding:13px 14px;color:var(--fg)}
+  .phone-wrap input::placeholder{color:var(--muted);font-weight:500;letter-spacing:normal}
+  .field-hint{font-size:11px;color:var(--muted);margin-top:7px}
+  .field-err{font-size:12px;color:var(--error-fg);margin-top:7px;font-weight:600;display:none}
+
+  /* flow segmented control */
+  .flow-row{margin-top:20px}
+  .flow-cap{font-size:12px;font-weight:600;color:var(--subtle);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .flow-seg{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:3px}
+  .flow-opt{font-family:inherit;border:0;background:transparent;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--subtle);padding:8px 16px;border-radius:100px;transition:.15s;display:inline-flex;align-items:center;gap:6px;line-height:1}
+  .flow-opt:hover{color:var(--fg)}
+  .flow-opt.active{background:#000;color:#fff}
+  .flow-note{font-size:11px;color:var(--muted);margin-top:9px;display:flex;gap:7px;align-items:flex-start}
+  .flow-note svg{width:13px;height:13px;flex:none;margin-top:1px;color:var(--subtle)}
+
+  /* consent */
+  .consent{display:flex;gap:11px;align-items:flex-start;margin-top:18px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);cursor:pointer}
+  .consent input{margin-top:2px;width:17px;height:17px;accent-color:#000;flex:none;cursor:pointer}
+  .consent .ct{font-size:12.5px;color:var(--subtle);line-height:1.5}
+  .consent .ct b{color:var(--fg)}
+  .consent a{color:#000;text-decoration:underline;text-underline-offset:2px}
+
+  .btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:var(--radius);height:46px;padding:0 20px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;transition:.15s}
+  .btn-primary{background:#000;color:#fff}
+  .btn-primary:hover{background:#171717}
+  .btn-primary:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+  .btn-ghost{background:#fff;border-color:var(--border);color:var(--subtle)}
+  .btn-ghost:hover{background:var(--surface)}
+  .btn-block{width:100%}
+  .btn-lg{height:50px;font-size:14px}
+
+  .trust-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px}
+  .trust{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:var(--subtle)}
+  .trust svg{width:15px;height:15px;color:var(--accent)}
+
+  .presenter{margin-top:auto;padding-top:22px}
+  .presenter-box{font-size:11.5px;color:var(--subtle);background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius);padding:11px 13px;display:flex;gap:9px;align-items:flex-start}
+  .presenter-box b{color:#854d0e}
+  .presenter-box code{font-family:'JetBrains Mono',monospace;background:#fff7d6;border:1px solid #fde68a;border-radius:5px;padding:1px 5px;font-size:11px}
+
+  /* ---------- CHAIN ---------- */
+  .chain-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .chain-progress{font-size:12px;font-weight:700;color:var(--subtle)}
+  .pbar{height:6px;background:var(--surface);border-radius:100px;overflow:hidden;margin:14px 0 10px}
+  .pbar > i{display:block;height:100%;width:0;background:#000;border-radius:100px;transition:width .5s ease}
+  .step-counter{font-size:12px;font-weight:700;color:var(--subtle);margin-bottom:12px;min-height:15px}
+
+  .steps{display:flex;flex-direction:column;gap:12px}
+  .steps .step{display:none}
+  .steps .step.current{display:block;opacity:1}
+  .step{border:1px solid var(--border);border-radius:var(--radius);background:#fff;overflow:hidden;opacity:.5;transition:opacity .4s, box-shadow .3s, border-color .3s}
+  .step.show{opacity:1}
+  .step.active{border-color:#cbd5e1;box-shadow:var(--shadow)}
+  .step.done{border-color:var(--border)}
+  .step-top{display:flex;align-items:center;gap:14px;padding:15px 16px;cursor:default}
+  .step-ico{width:40px;height:40px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--surface);color:var(--dark-txt);position:relative}
+  .step-ico svg{width:19px;height:19px}
+  .step.active .step-ico{background:#0b1220;color:#fff}
+  .step.done .step-ico{background:#062e1f;color:#5eead4}
+  .step-meta{flex:1;min-width:0}
+  .step-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .api-tag{font-size:10px;font-weight:700;color:var(--subtle);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px 7px;letter-spacing:.2px}
+  .step-desc{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .step-state{flex:none;display:flex;align-items:center}
+  .badge{font-size:10px;font-weight:700;border-radius:6px;padding:4px 9px;border:1px solid;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .b-wait{background:#fff;border-color:var(--border);color:var(--muted)}
+  .b-proc{background:var(--proc-bg);border-color:var(--proc-bd);color:var(--proc-fg)}
+  .b-done{background:var(--success-bg);border-color:var(--success-bd);color:var(--success-fg)}
+  .b-empty{background:var(--pending-bg);border-color:var(--pending-bd);color:var(--pending-fg)}
+  .b-err{background:var(--error-bg);border-color:var(--error-bd);color:var(--error-fg)}
+  .spin{width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .6s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .chev{display:none}
+  .chain-foot{display:flex;gap:12px;margin-top:22px;align-items:stretch}
+  .chain-foot .btn{height:50px;font-size:14px}
+  .step-body{max-height:0;overflow:hidden;transition:max-height .45s ease;border-top:0 solid var(--border)}
+  .step.expand .step-body{max-height:2600px;border-top:1px solid var(--border)}
+  .step-extra:empty{display:none}
+  .step-extra{padding:0 16px}
+  .step.expand .step-extra{padding:14px 16px 0}
+  .body-inner{padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px}
+  .term{background:#0b1220;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#cbd5e1;overflow:auto;white-space:pre-wrap;word-break:break-word}
+  .term .k{color:#7dd3fc}
+  .term .s{color:#86efac}
+  .term .c{color:#64748b}
+  .term .mut{color:#64748b}
+  .term-label{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .out-list{display:flex;flex-direction:column;gap:9px}
+  .out-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px dashed var(--border);padding-bottom:8px}
+  .out-row:last-child{border-bottom:0;padding-bottom:0}
+  .out-k{font-size:11px;font-weight:600;color:var(--muted)}
+  .out-v{font-size:12.5px;font-weight:700;color:var(--fg);text-align:right;word-break:break-word}
+  .arrow-pass{font-size:11px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;border-top:1px solid var(--success-bd)}
+  .arrow-pass svg{width:13px;height:13px}
+  .feed{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#f0fdf4,#f8fafc)}
+  .feed-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--subtle);display:inline-flex;align-items:center;gap:6px;margin-right:2px}
+  .feed-label svg{width:14px;height:14px;color:var(--accent)}
+  .feed-chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--success-bd);border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:700;color:var(--fg);animation:chipin .4s ease both}
+  .feed-chip .from{font-size:10px;font-weight:500;color:var(--muted)}
+  .feed-chip .from b{color:var(--subtle);font-weight:700}
+  @keyframes chipin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+  /* ---------- payer authorization (registration step) ---------- */
+  .auth-card{display:flex;gap:16px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface-2);flex-wrap:wrap}
+  .qr{width:120px;height:120px;flex:none;border:1px solid var(--border);border-radius:10px;background:#fff;padding:9px}
+  .qr svg{width:100%;height:100%;display:block}
+  .auth-info{flex:1;min-width:190px}
+  .auth-info .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .auth-info .d{font-size:12px;color:var(--subtle);margin-top:5px}
+  .auth-info .lnk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--subtle);background:#fff;border:1px solid var(--border);border-radius:6px;padding:5px 8px;margin-top:10px;display:inline-block;word-break:break-all}
+  .app-chips{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  .app-chip{font-size:11px;font-weight:700;border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:#fff;color:var(--subtle);display:inline-flex;gap:6px;align-items:center}
+  .app-dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .auth-status{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-top:13px;color:var(--proc-fg)}
+  .auth-status.ok{color:var(--success-fg)}
+  .auth-status svg{width:14px;height:14px}
+  .tpv-pill{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:var(--proc-bg);color:var(--proc-fg);border:1px solid var(--proc-bd);border-radius:5px;padding:2px 6px}
+
+  /* inline retry panel */
+  .nodata{border:1px solid var(--pending-bd);background:#fffdf5;border-radius:var(--radius);padding:18px;margin-top:14px;animation:fade .3s ease}
+  .nodata h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .nodata h3 svg{width:18px;height:18px;color:var(--pending-fg)}
+  .nodata p{font-size:13px;color:var(--subtle);margin-top:8px}
+  .nodata .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:stretch}
+  .nodata .phone-wrap{flex:1;min-width:200px}
+  .nodata .row .btn{height:46px;white-space:nowrap}
+  @media (max-width:430px){ .nodata .row .btn{flex:1 1 100%} }
+  .keepnote{font-size:11.5px;color:var(--muted);margin-top:11px;display:flex;gap:7px;align-items:flex-start}
+  .keepnote svg{width:14px;height:14px;flex:none;margin-top:1px;color:var(--subtle)}
+
+  /* ---------- REVIEW ---------- */
+  .rev-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
+  .sec{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff}
+  .sec-h{background:var(--surface);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .sec-h .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .sec-h .t svg{width:16px;height:16px;color:var(--dark-txt)}
+  .src{font-size:10px;font-weight:700;color:var(--subtle);background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px 8px}
+  .sec-b{padding:6px 16px}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);align-items:center}
+  .kv:last-child{border-bottom:0}
+  .kv .k{font-size:12px;font-weight:600;color:var(--muted)}
+  .kv .v{font-size:13px;font-weight:600;color:var(--fg);text-align:right}
+  .vbadge{font-size:10px;font-weight:700;border-radius:6px;padding:3px 8px;border:1px solid var(--success-bd);background:var(--success-bg);color:var(--success-fg);display:inline-flex;align-items:center;gap:5px}
+  .v-amber{border-color:var(--pending-bd);background:var(--pending-bg);color:var(--pending-fg)}
+
+  .review-actions{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+  .review-actions .btn{flex:1;min-width:180px}
+
+  .summary-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:18px;background:#fff}
+  .ss{padding:14px 16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .ss .n{font-size:16px;font-weight:800}
+  .ss .l{font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
+
+  /* ---------- SUCCESS ---------- */
+  .success{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 0}
+  .check{width:84px;height:84px;border-radius:50%;background:var(--success-bg);border:1px solid var(--success-bd);display:flex;align-items:center;justify-content:center;animation:pop .5s cubic-bezier(.2,.8,.2,1)}
+  .check svg{width:42px;height:42px;color:var(--success-fg)}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .success h1{font-size:26px;font-weight:800;margin-top:22px}
+  .success p{font-size:14px;color:var(--subtle);margin-top:10px;max-width:460px}
+  .ref{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;margin-top:20px;color:var(--subtle)}
+  .ref b{color:var(--fg)}
+  .sx-strip{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;justify-content:center}
+  .sx{font-size:11px;font-weight:700;border:1px solid var(--success-bd);background:#f0fdf4;color:var(--success-fg);border-radius:100px;padding:6px 12px}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:680px){ h1.h{font-size:21px} }
+  @media (max-width:560px){
+    .stage{padding:20px 14px}
+    .brand{padding:24px 18px}
+    .brand-title{font-size:21px}
+    .brand-sub{font-size:13px;max-width:none}
+    .brand-foot{display:none}
+    .topbar{margin-bottom:18px}
+    h1.h{font-size:20px}
+    p.lead{font-size:13px}
+    .card-pad{padding:18px}
+    .body-inner{padding:12px;gap:12px}
+    .feed{padding:11px 12px}
+    .chain-foot .btn{height:46px;font-size:13px;padding:0 12px;gap:6px}
+    .sec-h{padding:11px 13px}
+    .sec-b{padding:4px 13px}
+    .kv .v{font-size:12.5px}
+    .success h1{font-size:22px}
+    .check{width:72px;height:72px}
+    .check svg{width:36px;height:36px}
+  }
+  @media (max-width:400px){
+    .stage{padding:16px 12px}
+    .phone-wrap input{font-size:15px}
+    .step-name{font-size:13px}
+    .api-tag{font-size:9px;padding:2px 5px}
+    .step-ico{width:34px;height:34px}
+    .chain-foot .btn{font-size:12px;padding:0 10px}
+    .kv{flex-direction:column;align-items:flex-start;gap:3px}
+    .kv .v{text-align:left}
+  }
+  .vis-hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- BRAND PANEL -->
+  <aside class="brand">
+    <div class="brand-wordmark">DECENTRO</div>
+    <div class="brand-head">
+      <div class="brand-eyebrow">UPI Autopay · Lending EMI</div>
+      <div class="brand-title">One number.<br>EMIs on autopilot.</div>
+      <div class="brand-sub">Watch Decentro chain Mobile&nbsp;→&nbsp;Account, UPI mandate registration, status, pre-debit notification and the live EMI debit — recurring collections from a single number and one approval.</div>
+      <div class="brand-stats">
+        <div class="brand-stat"><div class="n">5</div><div class="l">APIs orchestrated</div></div>
+        <div class="brand-stat"><div class="n">&lt;1 min</div><div class="l">to active mandate</div></div>
+        <div class="brand-stat"><div class="n">1</div><div class="l">payer approval</div></div>
+      </div>
+      <div class="brand-foot">
+        <span class="brand-chip">NPCI UPI Autopay</span>
+        <span>decentro.tech</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- STAGE -->
+  <main class="stage">
+    <div class="stage-inner">
+      <div class="topbar">
+        <div class="crumbs" id="crumbs"><b>UPI Autopay</b></div>
+        <div class="mode-wrap">
+          <span class="mode-cap">DEMO</span>
+          <div class="mode-toggle" id="modeToggle" role="group" aria-label="Demo mode">
+            <button class="mode-opt active" data-mode="manual" type="button">Manual</button>
+            <button class="mode-opt" data-mode="auto" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="12" height="12"><path d="M8 5v14l11-7z" stroke-linejoin="round"/></svg>
+              Auto
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 1: INPUT -->
+      <section class="screen active" id="screen-input">
+        <h1 class="h">Set up EMI autopay</h1>
+        <p class="lead">Enter the borrower's mobile number and capture consent. Decentro resolves their bank account &amp; UPI, then registers and executes a recurring UPI mandate — no NACH paperwork.</p>
+
+        <div class="loan-strip">
+          <div class="loan-cell"><div class="l">Product</div><div class="n" id="ls-product">Personal Loan</div></div>
+          <div class="loan-cell"><div class="l">Principal</div><div class="n" id="ls-principal">₹2,00,000</div></div>
+          <div class="loan-cell"><div class="l">Monthly EMI</div><div class="n" id="ls-emi">₹8,500</div></div>
+          <div class="loan-cell"><div class="l">Tenure</div><div class="n" id="ls-tenure">24 months</div></div>
+        </div>
+
+        <div class="card card-pad" style="margin-top:16px">
+          <label class="label" for="mobile">Borrower mobile number</label>
+          <div class="phone-wrap">
+            <span class="cc">🇮🇳 +91</span>
+            <input id="mobile" inputmode="numeric" maxlength="10" placeholder="98765 43210" autocomplete="off" />
+          </div>
+          <div class="field-hint">A 10-digit Indian mobile number registered against the borrower's bank account.</div>
+          <div class="field-err" id="mobile-err">Enter a valid 10-digit mobile number.</div>
+
+          <div class="flow-row">
+            <div class="flow-cap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 12h16M4 6h16M4 18h10" stroke-linecap="round"/></svg>
+              Mandate registration flow
+            </div>
+            <div class="flow-seg" id="flowSeg" role="group" aria-label="Registration flow">
+              <button class="flow-opt active" data-flow="intent" type="button">Intent + QR</button>
+              <button class="flow-opt" data-flow="collect" type="button">Collect (VPA)</button>
+            </div>
+            <div class="flow-note" id="flowNote">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>
+              <span>Decentro returns a QR + UPI app deep links. The borrower approves with their MPIN — no VPA required.</span>
+            </div>
+          </div>
+
+          <label class="consent" for="consent">
+            <input type="checkbox" id="consent" />
+            <span class="ct"><b>The borrower consents</b> to Decentro resolving the bank account &amp; UPI linked to this mobile number and registering a recurring UPI Autopay mandate for loan EMI collection, in line with applicable <a href="#" onclick="return false">NPCI &amp; data regulations</a>.</span>
+          </label>
+
+          <button class="btn btn-primary btn-block btn-lg" id="startBtn" style="margin-top:18px" disabled>
+            Create autopay mandate
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+
+          <div class="trust-row">
+            <span class="trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" stroke-linejoin="round"/></svg> NPCI-compliant mandate</span>
+            <span class="trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> MPIN-authorised</span>
+            <span class="trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Audit-logged</span>
+          </div>
+        </div>
+
+        <div class="presenter">
+          <div class="presenter-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#854d0e" stroke-width="2" width="15" height="15" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>
+            <div><b>Presenter tip:</b> any 10-digit number runs the full success flow. Use a number ending in <code>0000</code> to demo the “no account linked” retry path. In staging, mandate <code>amount</code> bands simulate outcomes — ₹1–1000 Active, ₹1001–1500 Paused, ₹1501–2000 Rejected.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: CHAIN -->
+      <section class="screen" id="screen-chain">
+        <div class="chain-head">
+          <div>
+            <h1 class="h">Registering &amp; executing mandate</h1>
+            <p class="lead" style="margin-top:6px">Decentro runs each call in sequence — the output of every step feeds the next, all the way to the live EMI debit.</p>
+          </div>
+          <div class="chain-progress" id="chainPct">0%</div>
+        </div>
+        <div class="pbar"><i id="pbarFill"></i></div>
+        <div class="step-counter" id="stepCounter"></div>
+        <div class="step-check" id="stepCheck"></div>
+        <div class="steps" id="steps"></div>
+        <div id="nodataMount"></div>
+        <div class="chain-foot" id="chainFoot">
+          <button class="btn btn-ghost" id="backBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><path d="M19 12H5M11 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
+          <button class="btn btn-primary" id="nextBtn" style="flex:1"></button>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: REVIEW -->
+      <section class="screen" id="screen-review">
+        <h1 class="h">Review autopay mandate</h1>
+        <p class="lead">The mandate is registered and the first EMI has been debited. Confirm to activate the recurring collection schedule.</p>
+
+        <div class="summary-strip">
+          <div class="ss"><div class="n" id="ssApis">5/5</div><div class="l">APIs orchestrated</div></div>
+          <div class="ss"><div class="n">ACTIVE</div><div class="l">Mandate status</div></div>
+          <div class="ss"><div class="n">MONTHLY</div><div class="l">Frequency</div></div>
+          <div class="ss"><div class="n" id="ssEmi">₹8,500</div><div class="l">EMI · first debited</div></div>
+        </div>
+
+        <div class="rev-grid" id="revGrid"></div>
+
+        <div class="review-actions">
+          <button class="btn btn-ghost" id="backToStart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><path d="M19 12H5M11 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Start over
+          </button>
+          <button class="btn btn-primary" id="confirmBtn">
+            Activate recurring collection
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: SUCCESS -->
+      <section class="screen" id="screen-success">
+        <div class="success">
+          <div class="check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h1>Autopay mandate is active</h1>
+          <p id="successMsg">The recurring UPI mandate is registered and the first EMI has been collected. Future EMIs will be auto-debited on schedule with a pre-debit notification.</p>
+          <div class="ref">Decentro Mandate ID: <b id="refId">—</b></div>
+          <div class="sx-strip" id="sxStrip"></div>
+          <button class="btn btn-primary btn-lg" id="freshBtn" style="margin-top:26px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Set up another mandate
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Demo persona (borrower) ----------
+  var persona = {
+    name:"Rajesh Kumar Sharma",
+    bankName:"HDFC Bank",
+    accountNumber:"50100247890188",
+    ifsc:"HDFC0001234",
+    accountType:"Savings",
+    upiId:"rajesh.sharma@okhdfcbank",
+    consumerUrn:"URN8901234567"
+  };
+
+  // ---------- Loan / mandate config ----------
+  var loan = {
+    loanId:"LN-48217734",
+    product:"Personal Loan",
+    principal:"₹2,00,000",
+    emi:"₹8,500",
+    emiNum:8500,
+    tenure:"24 months",
+    frequency:"MONTHLY",
+    amountRule:"MAX",
+    mandateMax:"₹10,000",
+    mandateMaxNum:10000
+  };
+
+  // ---------- Date helpers ----------
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmtDate(d){return d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear();}
+  function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  var today=new Date();
+  var startD=new Date(today);
+  var endD=new Date(today); endD.setMonth(endD.getMonth()+24);
+  var debitD=new Date(today); debitD.setDate(debitD.getDate()+2);
+  var dates={start:isoDate(startD),end:isoDate(endD),debit:isoDate(debitD),debitNice:fmtDate(debitD),endNice:fmtDate(endD)};
+
+  // ---------- ID generators ----------
+  function hex(n){var s='';for(var i=0;i<n;i++){s+='0123456789ABCDEF'[Math.floor(Math.random()*16)];}return s;}
+
+  // ---------- Faux QR (deterministic from seed) ----------
+  function qrSVG(seed){
+    var N=25, cell=4, h=0;
+    for(var i=0;i<seed.length;i++){h=(h*31+seed.charCodeAt(i))>>>0;}
+    function rnd(){ h=(h*1103515245+12345)&0x7fffffff; return (h>>>8)/0x800000; }
+    var rects='', x, y;
+    function finder(ox,oy){
+      rects+='<rect x="'+(ox*cell)+'" y="'+(oy*cell)+'" width="'+(7*cell)+'" height="'+(7*cell)+'" fill="#0b1220"/>';
+      rects+='<rect x="'+((ox+1)*cell)+'" y="'+((oy+1)*cell)+'" width="'+(5*cell)+'" height="'+(5*cell)+'" fill="#fff"/>';
+      rects+='<rect x="'+((ox+2)*cell)+'" y="'+((oy+2)*cell)+'" width="'+(3*cell)+'" height="'+(3*cell)+'" fill="#0b1220"/>';
+    }
+    for(y=0;y<N;y++){
+      for(x=0;x<N;x++){
+        var inFinder=( (x<8&&y<8) || (x>N-9&&y<8) || (x<8&&y>N-9) );
+        if(inFinder) continue;
+        if(rnd()>0.52){ rects+='<rect x="'+(x*cell)+'" y="'+(y*cell)+'" width="'+cell+'" height="'+cell+'" fill="#0b1220"/>'; }
+      }
+    }
+    finder(0,0); finder(N-7,0); finder(0,N-7);
+    var size=N*cell;
+    return '<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg"><rect width="'+size+'" height="'+size+'" fill="#fff"/>'+rects+'</svg>';
+  }
+
+  // ---------- UPI app chips ----------
+  var APP_CHIPS =
+    '<span class="app-chip"><span class="app-dot" style="background:#5f6368"></span>GPay</span>'+
+    '<span class="app-chip"><span class="app-dot" style="background:#5f259f"></span>PhonePe</span>'+
+    '<span class="app-chip"><span class="app-dot" style="background:#00baf2"></span>Paytm</span>'+
+    '<span class="app-chip"><span class="app-dot" style="background:#ff7300"></span>CRED</span>';
+
+  // ---------- Step definitions ----------
+  var STEPS = [
+    {
+      id:"account", name:"Account Lookup", api:"Payments · Mobile to Account (V3)",
+      desc:"Resolve the bank account & UPI linked to the number",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20M6 15h4" stroke-linecap="round"/></svg>',
+      endpoint:"POST /v3/payments/mobile_to_account",
+      req:function(s){return '{\n  "reference_id": "'+s.refId+'",\n  "consumer_urn": "'+persona.consumerUrn+'",\n  "mobile_number": "'+s.activeMobile+'"\n}';},
+      out:function(){return [["Account holder",persona.name],["Account number",persona.accountNumber],["IFSC",persona.ifsc],["Account type",persona.accountType],["UPI ID",persona.upiId],["Validation","₹1 penny-drop · name matched"]];},
+      pass:"Account & UPI passed to Mandate Registration"
+    },
+    {
+      id:"register", name:"Create Mandate", api:"UPI Autopay · Create Mandate", kind:"register",
+      desc:"Register the recurring UPI mandate · payer approves with MPIN",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>',
+      endpoint:"POST /v3/payments/upi/autopay/mandate/link",
+      req:function(s){
+        if(s.flow==='collect'){
+          return '{\n  "reference_id": "'+s.refId+'",\n  "consumer_urn": "'+persona.consumerUrn+'",\n  "mandate_name": "'+loan.product+' EMI",\n  "amount": '+loan.mandateMaxNum+',\n  "default_amount": '+loan.emiNum+',\n  "frequency": "MONTHLY",\n  "amount_rule": "MAX",\n  "rule_type": "ON",\n  "start_date": "'+dates.start+'",\n  "end_date": "'+dates.end+'",\n  "expiry_time": 10,\n  "is_qr_requested": false,\n  "is_collect_request": true,\n  "is_tpv": true,\n  "is_downpayment": false,\n  "is_first_txn_amount": false,\n  "generate_psp_uri": false,\n  "purpose_message": "Loan EMI autopay",\n  "payer_details": {\n    "name": "'+persona.name+'",\n    "virtual_address": "'+persona.upiId+'",\n    "account_no": "'+persona.accountNumber+'"\n  }\n}';
+        }
+        return '{\n  "reference_id": "'+s.refId+'",\n  "consumer_urn": "'+persona.consumerUrn+'",\n  "mandate_name": "'+loan.product+' EMI",\n  "amount": '+loan.mandateMaxNum+',\n  "default_amount": '+loan.emiNum+',\n  "frequency": "MONTHLY",\n  "amount_rule": "MAX",\n  "rule_type": "ON",\n  "start_date": "'+dates.start+'",\n  "end_date": "'+dates.end+'",\n  "expiry_time": 10,\n  "is_qr_requested": true,\n  "is_collect_request": false,\n  "is_tpv": false,\n  "is_downpayment": false,\n  "is_first_txn_amount": false,\n  "generate_psp_uri": true,\n  "purpose_message": "Loan EMI autopay"\n}';
+      },
+      out:function(s){
+        var rows=[["decentro_mandate_id",s.mid],["Mandate status","PENDING → ACTIVE"],["Mandate name",loan.product+" EMI"],["Max amount (cap)",loan.mandateMax],["Default EMI",loan.emi]];
+        if(s.flow==='collect'){ rows.push(["Mode","Collect request · TPV"]); rows.push(["Collect sent to",persona.upiId]); }
+        else { rows.push(["Mode","Intent + QR"]); rows.push(["Mandate link","decpay.in/upi/mandate/"+s.mlink]); }
+        rows.push(["Approval","MPIN authorised by payer"]);
+        return rows;
+      },
+      pass:"decentro_mandate_id passed to Status check"
+    },
+    {
+      id:"status", name:"Get Mandate Status", api:"UPI Autopay · Get Mandate Status",
+      desc:"Confirm registration is ACTIVE (callback + status API)",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      endpoint:"GET /v3/payments/upi/autopay/mandate/status",
+      req:function(s){return '{\n  "decentro_mandate_id": "'+s.mid+'",\n  "reference_id": "'+s.refId+'"\n}';},
+      out:function(s){return [["mandate_status","ACTIVE"],["Description","Mandate is active"],["decentro_mandate_id",s.mid],["Amount cap",loan.mandateMax],["Frequency","MONTHLY · "+loan.amountRule],["Valid till",dates.endNice]];},
+      pass:"Active mandate passed to Pre-Debit Notification"
+    },
+    {
+      id:"notify", name:"Pre-Debit Notification", api:"UPI Autopay · Pre-Debit Notify",
+      desc:"Notify payer of the EMI debit ≥24h ahead (NPCI rule)",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 01-3.4 0" stroke-linecap="round"/></svg>',
+      endpoint:"POST /v3/payments/upi/autopay/mandate/notify",
+      req:function(s){return '{\n  "reference_id": "PDN-'+s.pdnRef+'",\n  "decentro_mandate_id": "'+s.mid+'",\n  "amount": '+loan.emiNum+',\n  "debit_date": "'+dates.debit+'"\n}';},
+      out:function(s){return [["notification_status","SUCCESS"],["presentation_sequence_id",s.seq],["Debit date",dates.debitNice],["Amount",loan.emi],["decentro_mandate_id",s.mid]];},
+      pass:"presentation_sequence_id passed to Presentation"
+    },
+    {
+      id:"present", name:"Mandate Presentation", api:"UPI Autopay · Presentation (Debit)",
+      desc:"Execute the EMI debit from the borrower's account",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      endpoint:"POST /v3/payments/upi/autopay/mandate/presentation",
+      req:function(s){return '{\n  "reference_id": "PRES-'+s.presRef+'",\n  "purpose_message": "'+loan.product+' EMI · '+MON[debitD.getMonth()]+' '+debitD.getFullYear()+'",\n  "presentation_sequence_id": "'+s.seq+'"\n}';},
+      out:function(s){return [["presentation_status","SUCCESS"],["decentro_txn_id",s.txn],["Amount debited",loan.emi],["Debit date",dates.debitNice],["From account",persona.accountNumber],["Result","Funds debited · settled to lender"]];},
+      pass:null
+    }
+  ];
+
+  // ---------- Inherited inputs (feed chips) ----------
+  var FEED = {
+    account:  function(s){return [["Mobile "+fmtMobile(s.activeMobile),"Borrower input"]];},
+    register: function(s){
+      var r=[["UPI · "+persona.upiId,"Account Lookup"],["A/c "+persona.accountNumber,"Account Lookup"]];
+      if(s.flow==='collect'){ r.push(["TPV on A/c","Account Lookup"]); }
+      return r;
+    },
+    status:   function(s){return [["mandate_id "+s.mid.slice(0,8)+"…","Create Mandate"],["Registration callback","Decentro webhook"]];},
+    notify:   function(s){return [["mandate_id "+s.mid.slice(0,8)+"…","Create Mandate"],["EMI "+loan.emi,"Loan config"]];},
+    present:  function(s){return [["seq "+s.seq.slice(0,14)+"…","Pre-Debit Notify"]];}
+  };
+
+  // ---------- Per-step checklist ----------
+  var CHECKLIST = [
+    {step:'account',  items:['Account holder','Account number','IFSC','UPI ID']},
+    {step:'register', items:['Mandate ID','Mandate link / QR','MPIN approval']},
+    {step:'status',   items:['Mandate status','Amount cap','Frequency']},
+    {step:'notify',   items:['Debit date','Sequence ID','EMI amount']},
+    {step:'present',  items:['Debit status','Amount debited','Txn ID']}
+  ];
+  var CL_BY={}; CHECKLIST.forEach(function(g){ CL_BY[g.step]=g.items; });
+  var SC_TICK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function renderStepCheck(i){
+    var mount=$('#stepCheck'); if(!mount) return;
+    if(i<0 || i>=STEPS.length){ mount.innerHTML=''; return; }
+    var items=CL_BY[STEPS[i].id]||[];
+    var done = i < pulled;
+    var n = done ? items.length : 0;
+    var html='<span class="sc-label">'+(done?'Captured':'Capturing')+' · '+n+'/'+items.length+'</span>';
+    items.forEach(function(it){
+      html+='<span class="sc-item'+(done?' done':'')+'"><span class="sc-tick">'+SC_TICK+'</span>'+it+'</span>';
+    });
+    mount.innerHTML=html;
+  }
+
+  // ---------- State ----------
+  var state = {
+    enteredMobile:null,
+    activeMobile:null,
+    flow:'intent',
+    refId:null, mid:null, seq:null, txn:null, mlink:null, pdnRef:null, presRef:null
+  };
+
+  // ---------- Helpers ----------
+  function $(s){return document.querySelector(s);}
+  function el(tag,cls,html){var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e;}
+  function show(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); $('#'+id).classList.add('active');}
+  function isNoAccount(m){return /0000$/.test(m);}
+  function fmtMobile(m){return "+91 "+m.slice(0,5)+" "+m.slice(5);}
+  function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+  function freshIds(){
+    state.mid=hex(32);
+    state.seq='DFN-'+state.mid+'-00001';
+    state.txn=hex(32);
+    state.mlink=Math.random().toString(36).slice(2,10);
+    state.refId='EMI-'+loan.loanId;
+    state.pdnRef=hex(8);
+    state.presRef=hex(8);
+  }
+
+  // ---------- Flow toggle (input screen) ----------
+  var flowNotes={
+    intent:'Decentro returns a QR + UPI app deep links. The borrower approves with their MPIN — no VPA required.',
+    collect:'Decentro sends a collect request to the borrower\'s UPI ID (resolved from their number) with TPV against their bank account. Note: NPCI restricts collect to IPO / secondary-market MCCs.'
+  };
+  document.querySelectorAll('#flowSeg .flow-opt').forEach(function(b){
+    b.addEventListener('click',function(){
+      state.flow=b.getAttribute('data-flow');
+      document.querySelectorAll('#flowSeg .flow-opt').forEach(function(x){x.classList.toggle('active',x===b);});
+      $('#flowNote').querySelector('span').textContent=flowNotes[state.flow];
+    });
+  });
+
+  // ---------- Screen 1 logic ----------
+  var mobileInput=$('#mobile'), consent=$('#consent'), startBtn=$('#startBtn'), mobileErr=$('#mobile-err');
+  function validNum(){return /^[6-9]\d{9}$/.test(mobileInput.value);}
+  function refreshStart(){startBtn.disabled=!(validNum() && consent.checked);}
+  mobileInput.addEventListener('input',function(){
+    this.value=this.value.replace(/\D/g,'').slice(0,10);
+    mobileErr.style.display='none';
+    refreshStart();
+  });
+  consent.addEventListener('change',refreshStart);
+  startBtn.addEventListener('click',function(){
+    if(!validNum()){mobileErr.style.display='block';return;}
+    state.enteredMobile=mobileInput.value;
+    state.activeMobile=mobileInput.value;
+    beginChain();
+  });
+
+  // ---------- Crumbs ----------
+  function setCrumb(step){
+    var map={input:'<b>UPI Autopay</b>',
+      chain:'UPI Autopay <span style="color:#cbd5e1">/</span> <b>Mandate setup</b>',
+      review:'UPI Autopay <span style="color:#cbd5e1">/</span> <b>Review</b>',
+      success:'UPI Autopay <span style="color:#cbd5e1">/</span> <b>Active</b>'};
+    $('#crumbs').innerHTML=map[step];
+  }
+
+  // ---------- Chain build ----------
+  var stepsMount=$('#steps'), nodataMount=$('#nodataMount'),
+      backBtn=$('#backBtn'), nextBtn=$('#nextBtn');
+
+  function buildStepEls(){
+    stepsMount.innerHTML='';
+    STEPS.forEach(function(st,i){
+      var wrap=el('div','step'); wrap.id='st-'+st.id;
+      wrap.innerHTML =
+        '<div class="step-top">'+
+          '<div class="step-ico">'+st.icon+'</div>'+
+          '<div class="step-meta">'+
+            '<div class="step-name">'+st.name+' <span class="api-tag">'+st.api+'</span></div>'+
+            '<div class="step-desc">'+st.desc+'</div>'+
+          '</div>'+
+          '<div class="step-state"><span class="badge b-wait">Queued</span></div>'+
+        '</div>'+
+        '<div class="step-body"><div class="feed" id="feed-'+st.id+'"></div>'+
+          '<div class="step-extra" id="extra-'+st.id+'"></div>'+
+          '<div class="body-inner">'+
+            '<div><div class="term-label">Request · '+st.endpoint+'</div><div class="term" id="req-'+st.id+'"></div></div>'+
+            '<div><div class="term-label">API response</div><div class="out-list" id="out-'+st.id+'"></div></div>'+
+          '</div>'+
+        (st.pass?'<div class="arrow-pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+st.pass+'</div>':'')+
+        '</div>';
+      wrap.querySelector('.step-top').addEventListener('click',function(){
+        if(busy) return;
+        if(i < pulled){ if(mode==='auto'){ setMode('manual'); } setFocus(i); updateFooter(); }
+      });
+      stepsMount.appendChild(wrap);
+    });
+  }
+
+  function setBadge(id,type,label,spin){
+    var holder=$('#st-'+id+' .step-state');
+    holder.innerHTML='<span class="badge '+type+'">'+(spin?'<span class="spin"></span>':'')+label+'</span>';
+  }
+
+  function renderOut(st){
+    var rows=st.out(state); var mount=$('#out-'+st.id); mount.innerHTML='';
+    rows.forEach(function(r){
+      var row=el('div','out-row');
+      row.innerHTML='<span class="out-k">'+r[0]+'</span><span class="out-v">'+r[1]+'</span>';
+      mount.appendChild(row);
+    });
+  }
+  function renderReq(st){ $('#req-'+st.id).innerHTML = syntax(st.req(state)); }
+  function renderFeed(st){
+    var mount=$('#feed-'+st.id); if(!mount) return;
+    var rows = FEED[st.id] ? FEED[st.id](state) : [];
+    var html='<span class="feed-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 4v8a4 4 0 004 4h12M20 16l-4-4M20 16l-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>Feeding in</span>';
+    rows.forEach(function(r,idx){
+      html+='<span class="feed-chip" style="animation-delay:'+(idx*0.09)+'s">'+r[0]+'<span class="from">from <b>'+r[1]+'</b></span></span>';
+    });
+    mount.innerHTML=html;
+  }
+  function syntax(j){
+    return j
+      .replace(/"([^"]+)":/g,'<span class="k">"$1"</span>:')
+      .replace(/: "([^"]*)"/g,': <span class="s">"$1"</span>');
+  }
+
+  // ---------- Registration: payer authorization UI ----------
+  function renderAuthUI(stage){
+    var mount=$('#extra-register'); if(!mount) return;
+    var head, body;
+    if(state.flow==='collect'){
+      head='<div class="auth-card">'+
+        '<div class="qr">'+qrSVG(state.mid)+'</div>'+
+        '<div class="auth-info">'+
+          '<div class="t">Collect request sent <span class="tpv-pill">TPV</span></div>'+
+          '<div class="d">A UPI Autopay collect request was pushed to the borrower\'s UPI ID. They authorise it in their app with their MPIN. TPV locks it to their verified bank account.</div>'+
+          '<div class="lnk">collect → '+persona.upiId+'</div>'+
+          '<div class="app-chips">'+APP_CHIPS+'</div>'+
+          '<div class="auth-status'+(stage==='done'?' ok':'')+'" id="authStatus"></div>'+
+        '</div>'+
+      '</div>';
+    } else {
+      head='<div class="auth-card">'+
+        '<div class="qr">'+qrSVG(state.mid)+'</div>'+
+        '<div class="auth-info">'+
+          '<div class="t">Scan or tap to approve mandate</div>'+
+          '<div class="d">Decentro returned a dynamic QR and UPI app deep links. The borrower scans the QR or taps their app, then approves the recurring mandate with their MPIN.</div>'+
+          '<div class="lnk">decpay.in/upi/mandate/'+state.mlink+'</div>'+
+          '<div class="app-chips">'+APP_CHIPS+'</div>'+
+          '<div class="auth-status'+(stage==='done'?' ok':'')+'" id="authStatus"></div>'+
+        '</div>'+
+      '</div>';
+    }
+    mount.innerHTML=head;
+    var as=$('#authStatus');
+    if(as){
+      if(stage==='done'){
+        as.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Approved with UPI MPIN · mandate ACTIVE';
+      } else {
+        as.innerHTML='<span class="spin"></span>Awaiting payer approval in UPI app…';
+      }
+    }
+  }
+
+  function setProgress(done,total){
+    var pct=Math.round(done/total*100);
+    $('#pbarFill').style.width=pct+'%';
+    $('#chainPct').textContent=pct+'%';
+  }
+
+  // ---------- Stepping engine ----------
+  var TOTAL=STEPS.length;
+  var pulled=0, focus=-1, busy=false, blocked=false;
+  var mode='manual', autoTimer=null, AUTO_DELAY=1200;
+
+  function pullThen(i){ return pullStep(i).then(scheduleAuto); }
+
+  function scheduleAuto(){
+    clearTimeout(autoTimer);
+    if(mode!=='auto' || busy || blocked) return;
+    if(pulled>=TOTAL) return;
+    if(focus < pulled-1) return;
+    autoTimer=setTimeout(function(){
+      if(mode!=='auto' || busy || blocked || pulled>=TOTAL || focus<pulled-1) return;
+      pullThen(pulled);
+    }, AUTO_DELAY);
+  }
+
+  function setMode(m){
+    mode=m;
+    document.querySelectorAll('#modeToggle .mode-opt').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-mode')===m);
+    });
+    if(m==='auto'){ scheduleAuto(); } else { clearTimeout(autoTimer); }
+  }
+  document.querySelectorAll('#modeToggle .mode-opt').forEach(function(b){
+    b.addEventListener('click',function(){ setMode(b.getAttribute('data-mode')); });
+  });
+
+  function beginChain(){
+    pulled=0; focus=-1; busy=false; blocked=false;
+    freshIds();
+    setCrumb('chain'); show('screen-chain');
+    nodataMount.innerHTML='';
+    $('#stepCheck').innerHTML='';
+    buildStepEls();
+    setProgress(0,TOTAL);
+    updateFooter();
+    pullThen(0);
+  }
+
+  function setFocus(i){
+    focus=i;
+    STEPS.forEach(function(st,idx){
+      var n=$('#st-'+st.id);
+      n.classList.toggle('current', idx===i);
+      n.classList.toggle('expand', idx===i);
+    });
+    if(i>=0){ $('#stepCounter').textContent='Step '+(i+1)+' of '+TOTAL+' · '+STEPS[i].name; }
+    renderStepCheck(i);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  async function pullStep(i){
+    var st=STEPS[i], node=$('#st-'+st.id);
+    busy=true; blocked=false; updateFooter();
+    node.classList.remove('next'); node.classList.add('show','active');
+    setFocus(i);
+    setBadge(st.id,'b-proc','Calling…',true);
+    renderFeed(st);
+    renderReq(st);
+    await wait(1050);
+
+    // Edge case: no bank account / UPI linked to this number
+    if(st.id==='account' && isNoAccount(state.activeMobile)){
+      setBadge(st.id,'b-empty','No record');
+      node.classList.remove('active');
+      $('#out-'+st.id).innerHTML='<div class="out-row"><span class="out-k">Result</span><span class="out-v" style="color:#854d0e">No account / UPI linked to this number</span></div>';
+      busy=false; blocked=true;
+      renderNoData(); updateFooter();
+      return;
+    }
+
+    // Registration: show QR/collect + payer MPIN approval
+    if(st.kind==='register'){
+      renderAuthUI('wait');
+      setBadge(st.id,'b-proc','Awaiting approval',true);
+      await wait(1700);
+      renderAuthUI('done');
+    }
+
+    renderOut(st);
+    setBadge(st.id,'b-done','Verified');
+    node.classList.remove('active'); node.classList.add('done');
+    pulled=i+1; focus=i;
+    renderStepCheck(i);
+    setProgress(pulled,TOTAL);
+    busy=false; updateFooter();
+  }
+
+  var ARROW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function updateFooter(){
+    backBtn.disabled = busy || blocked || focus<=0;
+    var label;
+    if(pulled>=TOTAL && focus>=TOTAL-1){ label='Review mandate '+ARROW; }
+    else { label='Next '+ARROW; }
+    nextBtn.innerHTML=label;
+    nextBtn.disabled = busy || blocked;
+  }
+
+  function goReview(){
+    buildReview(); setCrumb('review'); show('screen-review'); window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  nextBtn.addEventListener('click',function(){
+    if(busy||blocked) return;
+    if(pulled>=TOTAL && focus>=TOTAL-1){ goReview(); return; }
+    if(focus < pulled-1){ setFocus(focus+1); updateFooter(); return; }
+    if(pulled < TOTAL){ pullThen(pulled); }
+  });
+  backBtn.addEventListener('click',function(){
+    if(busy||blocked) return;
+    if(mode==='auto'){ setMode('manual'); }
+    if(focus>0){ setFocus(focus-1); updateFooter(); }
+  });
+
+  // ---------- No-data inline panel ----------
+  function renderNoData(){
+    nodataMount.innerHTML=
+      '<div class="nodata">'+
+        '<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01" stroke-linecap="round"/></svg>No bank account linked to this number</h3>'+
+        '<p>We couldn\'t resolve a bank account or UPI ID for <b>'+fmtMobile(state.activeMobile)+'</b>. The mandate must be registered against the borrower\'s primary number. Enter the primary number to continue.</p>'+
+        '<div class="row">'+
+          '<div class="phone-wrap"><span class="cc">🇮🇳 +91</span><input id="altMobile" inputmode="numeric" maxlength="10" placeholder="Primary mobile number" autocomplete="off"></div>'+
+          '<button class="btn btn-primary" id="altGo">Retry with this number<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+        '</div>'+
+        '<div class="field-err" id="alt-err" style="display:none">Enter a valid 10-digit mobile number.</div>'+
+        '<div class="keepnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Only a number with a linked bank account can anchor a UPI Autopay mandate.</span></div>'+
+      '</div>';
+    var alt=$('#altMobile'), altGo=$('#altGo'), altErr=$('#alt-err');
+    alt.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,10);altErr.style.display='none';});
+    altGo.addEventListener('click',function(){
+      var v=alt.value;
+      if(!/^[6-9]\d{9}$/.test(v)){altErr.style.display='block';return;}
+      state.activeMobile=v;
+      nodataMount.innerHTML='';
+      pulled=0; focus=-1; blocked=false; busy=false;
+      buildStepEls(); setProgress(0,TOTAL);
+      pullThen(0);
+    });
+    alt.focus();
+  }
+
+  // ---------- Review ----------
+  function buildReview(){
+    var grid=$('#revGrid');
+    var modeLabel = state.flow==='collect' ? 'Collect request · TPV' : 'Intent + QR';
+    grid.innerHTML =
+      sec('Borrower & Bank Account','Payments · Mobile to Account',
+        kv('Full name', persona.name, null)+
+        kv('Mobile', fmtMobile(state.activeMobile), null)+
+        kv('Bank', persona.bankName, null)+
+        kv('Account number', persona.accountNumber, 'Verified')+
+        kv('IFSC', persona.ifsc, null)+
+        kv('UPI ID', persona.upiId, 'Verified'))+
+
+      sec('Loan & Mandate','UPI Autopay · Create Mandate',
+        kv('Loan ID', loan.loanId, null)+
+        kv('Product', loan.product, null)+
+        kv('Principal', loan.principal, null)+
+        kv('decentro_mandate_id', state.mid, null)+
+        kv('Registration flow', modeLabel, null)+
+        kv('Mandate status', 'ACTIVE', 'Active')+
+        kv('Amount cap', loan.mandateMax+' · '+loan.amountRule, null)+
+        kv('Frequency', loan.frequency, null)+
+        kv('Valid till', dates.endNice, null))+
+
+      sec('First EMI — Pre-Debit & Presentation','UPI Autopay · Notify + Presentation',
+        kv('EMI amount', loan.emi, null)+
+        kv('Pre-debit notification', 'Sent', 'Success')+
+        kv('presentation_sequence_id', state.seq, null)+
+        kv('Debit date', dates.debitNice, null)+
+        kv('Presentation status', 'SUCCESS — debited', 'Debited')+
+        kv('decentro_txn_id', state.txn, null))+
+
+      sec('Recurring Schedule','Mandate · Forward EMIs',
+        kv('Next EMI', loan.emi+' · auto-debit', null)+
+        kv('Cadence', 'Monthly, on due date', null)+
+        kv('Pre-debit notice', '≥24h before each debit', null)+
+        kv('Remaining tenure', '23 of 24 EMIs', null));
+
+    $('#ssEmi').textContent=loan.emi;
+  }
+
+  function sec(title,source,bodyHtml){
+    return '<div class="sec"><div class="sec-h"><span class="t">'+
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+      title+'</span><span class="src">'+source+'</span></div>'+
+      '<div class="sec-b">'+bodyHtml+'</div></div>';
+  }
+  function kv(k,v,badge,amber){
+    var b = badge ? '<span class="vbadge'+(amber?' v-amber':'')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="9" height="9"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>'+badge+'</span>' : '';
+    var vhtml = badge ? '<span class="v" style="display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap">'+v+' '+b+'</span>' : '<span class="v">'+v+'</span>';
+    return '<div class="kv"><span class="k">'+k+'</span>'+vhtml+'</div>';
+  }
+
+  // ---------- Confirm + success ----------
+  $('#confirmBtn').addEventListener('click',function(){
+    $('#refId').textContent=state.mid;
+    var modeLabel = state.flow==='collect' ? 'Collect request with TPV' : 'Intent + QR';
+    $('#successMsg').textContent='The recurring UPI mandate ('+modeLabel+') is registered and the first EMI of '+loan.emi+' has been collected. Future EMIs will be auto-debited monthly, each preceded by a pre-debit notification.';
+    $('#sxStrip').innerHTML=
+      '<span class="sx">Mandate ACTIVE</span>'+
+      '<span class="sx">First EMI debited</span>'+
+      '<span class="sx">'+loan.tenure+' schedule</span>';
+    setCrumb('success'); show('screen-success'); window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  function resetAll(){
+    clearTimeout(autoTimer);
+    mobileInput.value=''; consent.checked=false; refreshStart();
+    state={enteredMobile:null,activeMobile:null,flow:state.flow,refId:null,mid:null,seq:null,txn:null,mlink:null,pdnRef:null,presRef:null};
+    setCrumb('input'); show('screen-input'); window.scrollTo({top:0,behavior:'smooth'});
+  }
+  $('#backToStart').addEventListener('click',resetAll);
+  $('#freshBtn').addEventListener('click',resetAll);
+
+})();
+</script>
+</body>
+</html>
